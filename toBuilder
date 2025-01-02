@@ -1,0 +1,128 @@
+# Understanding `toBuilder` in Lombok
+
+The `toBuilder` method in Lombok is a powerful tool that allows you to create a new instance of a class by modifying only selected fields while retaining the values of all other fields. This is particularly useful in scenarios where immutability is desired, such as when working with DTOs (Data Transfer Objects) or entities.
+
+---
+
+## What is `toBuilder`?
+
+The `toBuilder` method is part of the Lombok `@Builder` annotation when you enable the `toBuilder = true` option. It generates:
+
+1. A `builder()` method to create new instances of the class.
+2. A `toBuilder()` method, which returns a pre-populated builder initialized with the current instance's field values.
+
+---
+
+## How to Use `toBuilder`?
+
+To use `toBuilder`, you need to add the `@Builder(toBuilder = true)` annotation to your class. Here's an example:
+
+```java
+import lombok.Builder;
+import lombok.ToString;
+
+@Builder(toBuilder = true)
+@ToString
+public class LiveStream {
+    private String title;
+    private String fileId;
+    private String orientationType;
+    private String scheduledAt;
+    private String nonEditableField;
+}
+```
+The @Builder(toBuilder = true) generates the following methods:
+	•	A builder() method to create new instances.
+	•	A toBuilder() method to copy the current instance into a builder, allowing modifications.
+
+## Benefits of toBuilder
+	1.	Field Preservation: Fields that are not explicitly updated retain their original values.
+	2.	Immutability: The original object remains unchanged. A new object is always created.
+	3.	Selective Updates: Only the fields that need to be updated are modified, making the code clean and concise.
+	4.	Readability: It eliminates boilerplate code for manually copying fields.
+
+## Example Usage of toBuilder
+
+Creating an Instance:
+```java
+LiveStream liveStream = LiveStream.builder()
+    .title("Original Title")
+    .fileId("file123")
+    .orientationType("landscape")
+    .scheduledAt("2024-01-01T10:00:00")
+    .nonEditableField("constantValue")
+    .build();
+```
+Using toBuilder for Partial Updates:
+```java
+LiveStream updatedLiveStream = liveStream.toBuilder()
+    .title("Updated Title")  // Only updating the title
+    .build();
+```
+Output:
+```java
+LiveStream(title=Updated Title, fileId=file123, orientationType=landscape, scheduledAt=2024-01-01T10:00:00, nonEditableField=constantValue)
+```
+
+## Generated Code Behind the Scenes
+
+The toBuilder method generates a builder pre-filled with all the fields of the current object. Here’s what it looks like conceptually:
+```java
+public LiveStreamBuilder toBuilder() {
+    return new LiveStreamBuilder()
+        .title(this.title)
+        .fileId(this.fileId)
+        .orientationType(this.orientationType)
+        .scheduledAt(this.scheduledAt)
+        .nonEditableField(this.nonEditableField);
+}
+```
+## When to Use toBuilder?
+	•	Partial Updates: When you need to update some fields of an immutable object without affecting others.
+	•	Immutability: When you want to ensure the original object is not modified.
+	•	Clarity: To avoid manual copying of fields in your code.
+
+## Common Pitfalls
+	1.	Final Fields:
+	•	Lombok cannot modify final fields. These fields will need to be handled separately.
+	2.	Annotation Configuration:
+	•	Forgetting to enable toBuilder (@Builder(toBuilder = true)) will result in a “Cannot resolve method ‘toBuilder’” error.
+
+## Advanced Use Case: Updating Entities
+
+Here’s a real-world example of using toBuilder to update specific fields in an entity:
+```java
+public static LiveStream updateLiveStream(LiveStream existingStream, String newTitle, String newFileId) {
+    return existingStream.toBuilder()
+        .title(newTitle != null ? newTitle : existingStream.getTitle())
+        .fileId(newFileId != null ? newFileId : existingStream.getFileId())
+        .build();
+}
+```
+In this case:
+	•	Only title and fileId are updated if new values are provided.
+	•	Other fields, like orientationType or scheduledAt, remain unchanged.
+
+## Comparison: Without toBuilder
+
+If toBuilder wasn’t used, you’d need to manually copy all fields, even those that aren’t being updated:
+```java
+public static LiveStream updateLiveStream(LiveStream existingStream, String newTitle, String newFileId) {
+    return LiveStream.builder()
+        .title(newTitle != null ? newTitle : existingStream.getTitle())
+        .fileId(newFileId != null ? newFileId : existingStream.getFileId())
+        .orientationType(existingStream.getOrientationType())
+        .scheduledAt(existingStream.getScheduledAt())
+        .nonEditableField(existingStream.getNonEditableField())
+        .build();
+}
+```
+## Conclusion
+
+The toBuilder method in Lombok simplifies handling immutable objects, making it easier to:
+	•	Perform partial updates.
+	•	Maintain immutability.
+	•	Write cleaner, more maintainable code.
+
+By adding @Builder(toBuilder = true), you can save time, reduce boilerplate, and improve code clarity.
+
